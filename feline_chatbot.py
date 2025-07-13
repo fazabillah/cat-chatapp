@@ -8,7 +8,7 @@ load_dotenv()
 
 # Page configuration
 st.set_page_config(
-    page_title="Cat Personality Chatbot",
+    page_title="Our 7-Cats Personality Chatbot",
     page_icon="🐱",
     layout="wide"
 )
