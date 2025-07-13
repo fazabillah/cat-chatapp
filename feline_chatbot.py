@@ -23,15 +23,14 @@ def initialize_openai_client():
     return OpenAI(api_key=openai_api_key)
 
 # Calculate cat ages (2025 - adoption year) and human equivalent
-# Sorted by age (oldest first), then alphabetically
 CAT_AGES = {
-    "Kuni": {"actual": 2025 - 2014, "human_equivalent": 60},      # 11 years old = 60 human years
-    "Snowy": {"actual": 2025 - 2014, "human_equivalent": 60},    # 11 years old = 60 human years
-    "Ciko": {"actual": 2025 - 2015, "human_equivalent": 56},     # 10 years old = 56 human years
-    "Lily": {"actual": 2025 - 2015, "human_equivalent": 56},     # 10 years old = 56 human years
     "Molly": {"actual": 2025 - 2015, "human_equivalent": 56},    # 10 years old = 56 human years
+    "Ciko": {"actual": 2025 - 2015, "human_equivalent": 56},     # 10 years old = 56 human years
     "Bushy": {"actual": 2025 - 2020, "human_equivalent": 36},    # 5 years old = 36 human years
-    "Oyen": {"actual": 2025 - 2020, "human_equivalent": 36}      # 5 years old = 36 human years
+    "Lily": {"actual": 2025 - 2015, "human_equivalent": 56},     # 10 years old = 56 human years
+    "Oyen": {"actual": 2025 - 2020, "human_equivalent": 36},     # 5 years old = 36 human years
+    "Snowy": {"actual": 2025 - 2014, "human_equivalent": 60},    # 11 years old = 60 human years
+    "Kuni": {"actual": 2025 - 2014, "human_equivalent": 60}      # 11 years old = 60 human years
 }
 CHARACTER_PERSONALITIES = {
     "Molly": "The smallest cat in the house, grey and white long-haired. Very quiet but gets extremely excited when scratched at the base of her tail - makes happy sounds! Has been with owners Zaidah & Faza since 2015 in their minimalist Semenyih home with wooden furniture. Roams freely except bedrooms/offices. Often bullied by Oyen but stays gentle. Uses the automatic litter robot and feeder system (10+ years together!).",
@@ -93,20 +92,32 @@ st.info("🏠 **About Our Cat Family**: These are real cats living with Zaidah &
 with st.sidebar:
     st.header("Choose Your Cat")
     
-    # Cat selection with radio buttons showing name and age
+    # Cat selection with radio buttons showing name and age (sorted by age then alphabetical)
     st.write("**Select a cat to chat with:**")
     
-    # Create options with cat name and age
-    cat_options = []
+    # Create options with cat name and age, sorted by age (oldest first) then alphabetical
+    cat_list = []
     for cat_name in CHARACTER_PERSONALITIES.keys():
         cat_age = CAT_AGES[cat_name]
-        cat_options.append(f"{cat_name} ({cat_age['actual']} years old)")
+        cat_list.append((cat_name, cat_age['actual']))
+    
+    # Sort by age (descending) then by name (ascending)
+    cat_list.sort(key=lambda x: (-x[1], x[0]))
+    
+    # Create display options
+    cat_options = []
+    for cat_name, age in cat_list:
+        cat_options.append(f"{cat_name} ({age} years old)")
+    
+    # Find current selection index
+    current_cat_option = f"{st.session_state.selected_cat} ({CAT_AGES[st.session_state.selected_cat]['actual']} years old)"
+    current_index = cat_options.index(current_cat_option) if current_cat_option in cat_options else 0
     
     # Display radio buttons
     selected_option = st.radio(
         "Choose your cat:",
         cat_options,
-        index=cat_options.index(f"{st.session_state.selected_cat} ({CAT_AGES[st.session_state.selected_cat]['actual']} years old)"),
+        index=current_index,
         label_visibility="collapsed"
     )
     
@@ -119,26 +130,18 @@ with st.sidebar:
         st.session_state.messages = []  # Clear chat history when switching cats
         st.rerun()
     
-    # Display cat personality in bullet points (sorted by age, then alphabetically)
+    # Display cat personality in bullet points
     st.subheader(f"About {selected_cat}")
     
     # Create bullet points based on selected cat
-    if selected_cat == "Kuni":
+    if selected_cat == "Molly":
         st.markdown("""
-        • **Appearance**: Maine Coon mix, biggest cat (gentle giant)
-        • **Personality**: Very kind and well-behaved
-        • **Special**: Gets office room access (others can't enter)
-        • **Favorite**: Very clingy specifically to Faza
-        • **Status**: Senior cat, gets special treatment
-        • **Age**: 11 years old (since 2014)
-        """)
-    elif selected_cat == "Snowy":
-        st.markdown("""
-        • **Appearance**: White Ragdoll mix with beautiful blue eyes
-        • **Pattern**: Dark grey stripes and spots
-        • **Personality**: Very vocal with high-pitched meows
-        • **Status**: Longest family member, gentle and affectionate
-        • **Age**: 11 years old (since 2014)
+        • **Size**: Smallest cat in the house
+        • **Appearance**: Grey & white long-haired
+        • **Personality**: Very quiet but gets excited with tail scratches
+        • **Special**: Makes happy sounds when scratched at tail base
+        • **Age**: 10 years old (since 2015)
+        • **Status**: Often bullied by Oyen but stays gentle
         """)
     elif selected_cat == "Ciko":
         st.markdown("""
@@ -147,6 +150,14 @@ with st.sidebar:
         • **Ability**: Can jump to higher tables despite missing leg
         • **Personality**: Very playful and gets into mischief
         • **Age**: 10 years old (since 2015)
+        """)
+    elif selected_cat == "Bushy":
+        st.markdown("""
+        • **Appearance**: Grey flat-faced cat, very bushy fur
+        • **Limitation**: Can't jump to tables
+        • **Special**: Howls like a wolf facing walls - very annoying!
+        • **Personality**: Clingy but fights back when hugged
+        • **Age**: 5 years old (since 2020)
         """)
     elif selected_cat == "Lily":
         st.markdown("""
@@ -157,23 +168,6 @@ with st.sidebar:
         • **Age**: 10 years old (since 2015)
         • **Status**: Often bullied by Oyen, too lazy to fight back
         """)
-    elif selected_cat == "Molly":
-        st.markdown("""
-        • **Size**: Smallest cat in the house
-        • **Appearance**: Grey & white long-haired
-        • **Personality**: Very quiet but gets excited with tail scratches
-        • **Special**: Makes happy sounds when scratched at tail base
-        • **Age**: 10 years old (since 2015)
-        • **Status**: Often bullied by Oyen but stays gentle
-        """)
-    elif selected_cat == "Bushy":
-        st.markdown("""
-        • **Appearance**: Grey flat-faced cat, very bushy fur
-        • **Limitation**: Can't jump to tables
-        • **Special**: Howls like a wolf facing walls - very annoying!
-        • **Personality**: Clingy but fights back when hugged
-        • **Age**: 5 years old (since 2020)
-        """)
     elif selected_cat == "Oyen":
         st.markdown("""
         • **Appearance**: Orange cat with Maine Coon face, looks like kitten
@@ -182,6 +176,23 @@ with st.sidebar:
         • **Problem**: Loves peeing on floor (not litter!), marks territory
         • **Behavior**: Bullies Molly & Lily constantly
         • **Age**: 5 years old (since 2020)
+        """)
+    elif selected_cat == "Snowy":
+        st.markdown("""
+        • **Appearance**: White Ragdoll mix with beautiful blue eyes
+        • **Pattern**: Dark grey stripes and spots
+        • **Personality**: Very vocal with high-pitched meows
+        • **Status**: Longest family member, gentle and affectionate
+        • **Age**: 11 years old (since 2014)
+        """)
+    elif selected_cat == "Kuni":
+        st.markdown("""
+        • **Appearance**: Maine Coon mix, biggest cat (gentle giant)
+        • **Personality**: Very kind and well-behaved
+        • **Special**: Gets office room access (others can't enter)
+        • **Favorite**: Very clingy specifically to Faza
+        • **Status**: Senior cat, gets special treatment
+        • **Age**: 11 years old (since 2014)
         """)
 
     
